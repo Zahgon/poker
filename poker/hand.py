@@ -56,16 +56,28 @@ class _HandMeta(type):
         return cls
 
     def _get_non_pairs(cls):
-        pass
+        for rank1 in Rank:
+            for rank2 in (r for r in Rank if r < rank1):
+                yield cls(f"{rank1}{rank2}o")
+                yield cls(f"{rank1}{rank2}s")
 
     def _get_pairs(cls):
-        pass
+        for rank in Rank:
+            yield cls(rank.val * 2)
 
     def __iter__(cls):
         return iter(cls._all_hands)
 
     def make_random(cls):
-        pass
+        obj = object.__new__(cls)
+        first = Rank.make_random()
+        second = Rank.make_random()
+        obj._set_ranks_in_order(first, second)
+        if first == second:
+            obj._shape = ""
+        else:
+            obj._shape = random.choice(["s", "o"])
+        return obj
 
 
 @functools.total_ordering
@@ -146,55 +158,71 @@ class Hand(_ReprMixin, metaclass=_HandMeta):
 
     def _set_ranks_in_order(self, first, second):
         # set as Rank objects.
-        pass
+        self.first, self.second = Rank(first), Rank(second)
+        if self.first < self.second:
+            self.first, self.second = self.second, self.first
 
     def to_combos(self):
-        pass
+        first, second = self.first.val, self.second.val
+        if self.is_pair:
+            return tuple(
+                Combo(first + s1 + first + s2) for s1, s2 in _PAIR_SUIT_COMBINATIONS
+            )
+        elif self.is_offsuit:
+            return tuple(
+                Combo(first + s1 + second + s2) for s1, s2 in _OFFSUIT_SUIT_COMBINATIONS
+            )
+        else:
+            return tuple(
+                Combo(first + s1 + second + s2) for s1, s2 in _SUITED_SUIT_COMBINATIONS
+            )
 
     @property
     def is_suited_connector(self):
-        pass
+        return self.is_suited and self.is_connector
 
     @property
     def is_suited(self):
-        pass
+        return self._shape == "s"
 
     @property
     def is_offsuit(self):
-        pass
+        return self._shape == "o"
 
     @property
     def is_connector(self):
-        pass
+        return self.rank_difference == 1
 
     @property
     def is_one_gapper(self):
-        pass
+        return self.rank_difference == 2
 
     @property
     def is_two_gapper(self):
-        pass
+        return self.rank_difference == 3
 
     @property
     def rank_difference(self):
         """The difference between the first and second rank of the Hand."""
-        pass
+
+        # self.first >= self.second
+        return Rank.difference(self.first, self.second)
 
     @property
     def is_broadway(self):
-        pass
+        return self.first in BROADWAY_RANKS and self.second in BROADWAY_RANKS
 
     @property
     def is_pair(self):
-        pass
+        return self.first == self.second
 
     @property
     def shape(self):
-        pass
+        return Shape(self._shape)
 
     @shape.setter
     def shape(self, value):
-        pass
+        self._shape = Shape(value).val
 
 
 PAIR_HANDS = tuple(hand for hand in Hand if hand.is_pair)
@@ -228,7 +256,11 @@ class Combo(_ReprMixin):
 
     @classmethod
     def from_cards(cls, first, second):
-        pass
+        self = super().__new__(cls)
+        first = first.rank.val + first.suit.val
+        second = second.rank.val + second.suit.val
+        self._set_cards_in_order(first, second)
+        return self
 
     def __str__(self):
         return f"{self.first}{self.second}"
@@ -270,56 +302,64 @@ class Combo(_ReprMixin):
             return self_first < other_first
 
     def _set_cards_in_order(self, first, second):
-        pass
+        self.first, self.second = Card(first), Card(second)
+        if self.first < self.second:
+            self.first, self.second = self.second, self.first
 
     def to_hand(self):
         """Convert combo to :class:`Hand` object, losing suit information."""
-        pass
+        return Hand(f"{self.first.rank}{self.second.rank}{self.shape}")
 
     @property
     def is_suited_connector(self):
-        pass
+        return self.is_suited and self.is_connector
 
     @property
     def is_suited(self):
-        pass
+        return self.first.suit == self.second.suit
 
     @property
     def is_offsuit(self):
-        pass
+        return not self.is_suited and not self.is_pair
 
     @property
     def is_connector(self):
-        pass
+        return self.rank_difference == 1
 
     @property
     def is_one_gapper(self):
-        pass
+        return self.rank_difference == 2
 
     @property
     def is_two_gapper(self):
-        pass
+        return self.rank_difference == 3
 
     @property
     def rank_difference(self):
         """The difference between the first and second rank of the Combo."""
-        pass
+        # self.first >= self.second
+        return Rank.difference(self.first.rank, self.second.rank)
 
     @property
     def is_pair(self):
-        pass
+        return self.first.rank == self.second.rank
 
     @property
     def is_broadway(self):
-        pass
+        return self.first.is_broadway and self.second.is_broadway
 
     @property
     def shape(self):
-        pass
+        if self.is_pair:
+            return Shape.PAIR
+        elif self.is_suited:
+            return Shape.SUITED
+        else:
+            return Shape.OFFSUIT
 
     @shape.setter
     def shape(self, value):
-        pass
+        self._shape = Shape(value).val
 
 
 class _RegexRangeLexer:
@@ -389,45 +429,56 @@ class _RegexRangeLexer:
 
     @staticmethod
     def _get_value(token):
-        pass
+        return token
 
     @staticmethod
     def _get_first(token):
-        pass
+        return token[0]
 
     @staticmethod
     def _get_rank(token):
-        pass
+        return token[0] if token[1].upper() == "X" else token[1]
 
     @classmethod
     def _get_in_order(cls, first_part, second_part, token):
-        pass
+        smaller, bigger = cls._get_rank_in_order(token, first_part, second_part)
+        return smaller.val, bigger.val
 
     @classmethod
     def _get_first_two(cls, token):
-        pass
+        return cls._get_in_order(0, 1, token)
 
     @classmethod
     def _get_for_pair_dash(cls, token):
-        pass
+        return cls._get_in_order(0, 3, token)
 
     @classmethod
     def _get_first_smaller_bigger(cls, first_part, second_part, token):
-        pass
+        smaller1, bigger1 = cls._get_rank_in_order(token[first_part], 0, 1)
+        smaller2, bigger2 = cls._get_rank_in_order(token[second_part], 0, 1)
+
+        if bigger1 != bigger2:
+            raise ValueError("Invalid token: %s" % token)
+
+        smaller, bigger = min(smaller1, smaller2), max(smaller1, smaller2)
+
+        return bigger1.val, smaller.val, bigger.val
 
     @staticmethod
     def _get_rank_in_order(token, first_part, second_part):
-        pass
+        first, second = Rank(token[first_part]), Rank(token[second_part])
+        smaller, bigger = min(first, second), max(first, second)
+        return smaller, bigger
 
     @classmethod
     # for 'A5-AT'
     def _get_for_both_dash(cls, token):
-        pass
+        return cls._get_first_smaller_bigger(slice(0, 2), slice(3, 5), token)
 
     @classmethod
     # for 'A5o-ATo' and 'A5s-ATs'
     def _get_for_shaped_dash(cls, token):
-        pass
+        return cls._get_first_smaller_bigger(slice(0, 2), slice(4, 6), token)
 
 
 @functools.total_ordering
@@ -581,7 +632,8 @@ class Range:
     @classmethod
     def from_objects(cls, iterable):
         """Make an instance from an iterable of Combos, Hands or both."""
-        pass
+        range_string = " ".join(str(obj) for obj in iterable)
+        return cls(range_string)
 
     def __eq__(self, other):
         if self.__class__ is other.__class__:
@@ -626,45 +678,190 @@ class Range:
         The HTML contains no extra whitespace at all.
         Calculating it should not take more than 30ms (which takes calculating a 100% range).
         """
-        pass
+
+        # note about speed: I tried with functools.lru_cache, and the initial call was 3-4x slower
+        # than without it, and the need for calling this will usually be once, so no need to cache
+
+        html = ['<table class="range">']
+
+        for row in reversed(Rank):
+            html.append("<tr>")
+
+            for col in reversed(Rank):
+                if row > col:
+                    suit, cssclass = "s", "suited"
+                elif row < col:
+                    suit, cssclass = "o", "offsuit"
+                else:
+                    suit, cssclass = "", "pair"
+
+                html.append('<td class="%s">' % cssclass)
+                hand = Hand(row.val + col.val + suit)
+
+                if hand in self.hands:
+                    html.append(str(hand))
+
+                html.append("</td>")
+
+            html.append("</tr>")
+
+        html.append("</table>")
+        return "".join(html)
 
     def to_ascii(self, border=False):
         """Returns a nicely formatted ASCII table with optional borders."""
-        pass
+
+        table = []
+
+        if border:
+            table.append("┌" + "─────┬" * 12 + "─────┐\n")
+            line = "├" + "─────┼" * 12 + "─────┤\n"
+            border = "│ "
+            lastline = "\n└" + "─────┴" * 12 + "─────┘"
+        else:
+            line = border = lastline = ""
+
+        for row in reversed(Rank):
+            for col in reversed(Rank):
+                if row > col:
+                    suit = "s"
+                elif row < col:
+                    suit = "o"
+                else:
+                    suit = ""
+
+                hand = Hand(row.val + col.val + suit)
+                hand = str(hand) if hand in self.hands else ""
+                table.append(border)
+                table.append(hand.ljust(4))
+
+            if row.val != "2":
+                table.append(border)
+                table.append("\n")
+                table.append(line)
+
+        table.append(border)
+        table.append(lastline)
+
+        return "".join(table)
 
     @property
     def rep_pieces(self):
         """List of str pieces how the Range is represented."""
-        pass
+
+        if self._count_combos() == 1326:
+            return ["XX"]
+
+        all_combos = self._all_combos
+
+        pairs = [c for c in all_combos if c.is_pair]
+        pair_pieces = self._get_pieces(pairs, 6)
+
+        suiteds = [c for c in all_combos if c.is_suited]
+        suited_pieces = self._get_pieces(suiteds, 4)
+
+        offsuits = [c for c in all_combos if c.is_offsuit]
+        offsuit_pieces = self._get_pieces(offsuits, 12)
+
+        pair_strs = self._shorten_pieces(pair_pieces)
+        suited_strs = self._shorten_pieces(suited_pieces)
+        offsuit_strs = self._shorten_pieces(offsuit_pieces)
+
+        return pair_strs + suited_strs + offsuit_strs
 
     def _get_pieces(self, combos, combos_in_hand):
-        pass
+        if not combos:
+            return []
+
+        sorted_combos = sorted(combos, reverse=True)
+        hands_and_combos = []
+        current_combos = []
+        last_combo = sorted_combos[0]
+
+        for combo in sorted_combos:
+            if (
+                last_combo.first.rank == combo.first.rank
+                and last_combo.second.rank == combo.second.rank
+            ):
+                current_combos.append(combo)
+                length = len(current_combos)
+
+                if length == combos_in_hand:
+                    hands_and_combos.append(combo.to_hand())
+                    current_combos = []
+            else:
+                hands_and_combos.extend(current_combos)
+                current_combos = [combo]
+
+            last_combo = combo
+
+        # add the remainder if any, current_combos might be empty
+        hands_and_combos.extend(current_combos)
+
+        return hands_and_combos
 
     def _shorten_pieces(self, pieces):
-        pass
+        if not pieces:
+            return []
+
+        str_pieces = []
+        first = last = pieces[0]
+        for current in pieces[1:]:
+            if isinstance(last, Combo):
+                str_pieces.append(str(last))
+                first = last = current
+            elif isinstance(current, Combo):
+                str_pieces.append(self._get_format(first, last))
+                first = last = current
+            elif (
+                current.is_pair and Rank.difference(last.first, current.first) == 1
+            ) or (
+                last.first == current.first
+                and Rank.difference(last.second, current.second) == 1
+            ):
+                last = current
+            else:
+                str_pieces.append(self._get_format(first, last))
+                first = last = current
+
+        # write out any remaining pieces
+        str_pieces.append(self._get_format(first, last))
+
+        return str_pieces
 
     def _get_format(self, first, last):
-        pass
+        if first == last:
+            return str(first)
+        elif (
+            first.is_pair
+            and first.first.val == "A"
+            or Rank.difference(first.first, first.second) == 1
+        ):
+            return f"{last}+"
+        elif last.second.val == "2":
+            return f"{first}-"
+        else:
+            return f"{first}-{last}"
 
     def _add_pair(self, rank):
-        pass
+        self._hands.add(Hand(rank * 2))
 
     def _add_offsuit(self, tok):
-        pass
+        self._hands.add(Hand(tok[0] + tok[1] + "o"))
 
     def _add_suited(self, tok):
-        pass
+        self._hands.add(Hand(tok[0] + tok[1] + "s"))
 
     @cached_property
     def hands(self):
         """Tuple of hands contained in this range. If only one combo of the same hand is present,
         it will be shown here. e.g. ``Range('2s2c').hands == (Hand('22'),)``
         """
-        pass
+        return tuple(sorted(self._all_hands))
 
     @cached_property
     def combos(self):
-        pass
+        return tuple(sorted(self._all_combos))
 
     @cached_property
     def percent(self):
@@ -673,18 +870,30 @@ class Range:
         There are 1326 total combos in Hold'em: 52 * 51 / 2 (because order doesn't matter)
         Precision: 2 decimal point
         """
-        pass
+        dec_percent = Decimal(self._count_combos()) / 1326 * 100
+        # round to two decimal point
+        return float(dec_percent.quantize(Decimal("1.00")))
 
     def _count_combos(self):
-        pass
+        combo_count = len(self._combos)
+        for hand in self._hands:
+            if hand.is_pair:
+                combo_count += 6
+            elif hand.is_offsuit:
+                combo_count += 12
+            elif hand.is_suited:
+                combo_count += 4
+        return combo_count
 
     @cached_property
     def _all_combos(self):
-        pass
+        hand_combos = {combo for hand in self._hands for combo in hand.to_combos()}
+        return hand_combos | self._combos
 
     @cached_property
     def _all_hands(self):
-        pass
+        combo_hands = {combo.to_hand() for combo in self._combos}
+        return combo_hands | self._hands
 
 
 if __name__ == "__main__":

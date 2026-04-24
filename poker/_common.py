@@ -26,7 +26,7 @@ class _PokerEnumMeta(enum.EnumMeta):
         return super().__call__(value)
 
     def make_random(cls):
-        pass
+        return random.choice(list(cls))
 
 
 @functools.total_ordering
@@ -67,7 +67,7 @@ class PokerEnum(_OrderableMixin, enum.Enum, metaclass=_PokerEnumMeta):
     @property
     def val(self):
         """The first value of the Enum member."""
-        pass
+        return self._value_[0]
 
 
 class _ReprMixin:

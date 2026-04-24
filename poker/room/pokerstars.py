@@ -159,19 +159,15 @@ class Notes:
     _color_re = re.compile("^[0-9A-F]{6}$")
 
     def __init__(self, notes: str):
-        self.raw = notes
-        parser = etree.XMLParser(recover=True, resolve_entities=False)
-        self.root = etree.XML(notes.encode(), parser)
+        raise NotImplementedError
 
     def __str__(self):
-        return etree.tostring(
-            self.root, xml_declaration=True, encoding="UTF-8", pretty_print=True
-        ).decode()
+        raise NotImplementedError
 
     @classmethod
     def from_file(cls, filename):
         """Make an instance from a XML file."""
-        return cls(Path(filename).open().read())
+        raise NotImplementedError
 
     @property
     def players(self):

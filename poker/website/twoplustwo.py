@@ -66,11 +66,10 @@ class ForumMember:
     )
 
     def __init__(self, username):
-        self.id = search_userid(username)
-        self._download_and_parse()
+        raise NotImplementedError
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}: {self.username}>"
+        raise NotImplementedError
 
     @classmethod
     def from_userid(cls, userid: str):

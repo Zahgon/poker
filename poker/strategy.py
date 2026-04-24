@@ -36,39 +36,19 @@ _POSITIONS = {"utg", "utg1", "utg2", "utg3", "utg4", "co", "btn", "sb", "bb"}
 
 class Strategy(Mapping):
     def __init__(self, strategy, source="<string>"):
-        self._config = ConfigParser(default_section="strategy", interpolation=None)
-        self._config.read_string(strategy, source)
-
-        self._situations = dict()
-        for name in self._config.sections():
-            # configparser set non-specified values to '', we want default to None
-            attr_names = [a.name for a in attr.fields(_Situation)]
-            values = dict.fromkeys(attr_names, None)
-            for key, val in self._config[name].items():
-                # filter out fields not implemented, otherwise it would
-                # cause TypeError for _Situation constructor
-                if (not val) or (key not in attr_names):
-                    continue
-                elif key in _POSITIONS:
-                    values[key] = Range(val)
-                else:
-                    values[key] = val
-            self._situations[name] = _Situation(**values)
-
-        self._tuple = tuple(self._situations.values())
+        raise NotImplementedError
 
     @classmethod
     def from_file(cls, filename):
-        strategy = Path(filename).read_text()
-        return cls(strategy, source=filename)
+        raise NotImplementedError
 
     def __getattr__(self, name):
         # Strategy uses only _Situation._fields, but this way .strategy files are more flexible,
         # because can contain extra values without breaking anything
-        return self._config["strategy"][name]
+        raise NotImplementedError
 
     def __iter__(self):
-        return iter(self._situations)
+        raise NotImplementedError
 
     def items(self):
         pass
@@ -80,20 +60,16 @@ class Strategy(Mapping):
         pass
 
     def __getitem__(self, key):
-        if isinstance(key, str):
-            return self._situations.__getitem__(key)
-        elif isinstance(key, int):
-            return self._tuple[key]
-        raise TypeError("You can lookup by int or str")
+        raise NotImplementedError
 
     def values(self):
         pass
 
     def __contains__(self, key):
-        return self._situations.__contains__(key)
+        raise NotImplementedError
 
     def __len__(self):
-        return len(self._situations)
+        raise NotImplementedError
 
     def get_first_spot(self, situation=0):
         pass

@@ -94,12 +94,7 @@ class IHandHistory(Interface):
 
 class _BaseStreet:
     def __init__(self, flop):
-        self.pot = None
-        self.actions = None
-        self.cards = None
-        self._parse_cards(flop[0])
-        self._parse_actions(flop[1:])
-        self._all_combinations = itertools.combinations(self.cards, 2)
+        raise NotImplementedError
 
     @cached_property
     def is_rainbow(self):
@@ -142,17 +137,14 @@ class _BaseHandHistory:
 
     def __init__(self, hand_text):
         """Save raw hand history."""
-        self.raw = hand_text.strip()
-        self.header_parsed = False
-        self.parsed = False
+        raise NotImplementedError
 
     @classmethod
     def from_file(cls, filename):
-        with io.open(filename, "rt", encoding="utf-8-sig") as f:
-            return cls(f.read())
+        raise NotImplementedError
 
     def __str__(self):
-        return f"<{self.__class__.__name__}: #{self.ident}>"
+        raise NotImplementedError
 
     @property
     def board(self):
