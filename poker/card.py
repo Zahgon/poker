@@ -34,11 +34,7 @@ class Rank(PokerEnum):
     @classmethod
     def difference(cls, first, second):
         """Tells the numerical difference between two ranks."""
-
-        # so we always get a Rank instance even if string were passed in
-        first, second = cls(first), cls(second)
-        rank_list = list(cls)
-        return abs(rank_list.index(first) - rank_list.index(second))
+        pass
 
 
 FACE_RANKS = Rank("J"), Rank("Q"), Rank("K")
@@ -57,10 +53,7 @@ class _CardMeta(type):
 
     def make_random(cls):
         """Returns a random Card instance."""
-        self = object.__new__(cls)
-        self.rank = Rank.make_random()
-        self.suit = Suit.make_random()
-        return self
+        pass
 
     def __iter__(cls):
         return iter(cls._all_cards)
@@ -106,8 +99,8 @@ class Card(_ReprMixin, metaclass=_CardMeta):
 
     @property
     def is_face(self):
-        return self.rank in FACE_RANKS
+        pass
 
     @property
     def is_broadway(self):
-        return self.rank in BROADWAY_RANKS
+        pass

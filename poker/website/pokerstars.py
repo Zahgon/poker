@@ -30,18 +30,7 @@ class _Tournament:
 
 def get_current_tournaments():
     """Get the next 200 tournaments from pokerstars."""
-
-    schedule_page = requests.get(TOURNAMENTS_XML_URL)
-    root = etree.XML(schedule_page.content)
-
-    for tour in root.iter("{*}tournament"):
-        yield _Tournament(
-            start_date=tour.findtext("{*}start_date"),
-            name=tour.findtext("{*}name"),
-            game=tour.findtext("{*}game"),
-            buyin=tour.findtext("{*}buy_in_fee"),
-            players=tour.get("players"),
-        )
+    pass
 
 
 @attr.s(slots=True)
@@ -69,13 +58,4 @@ class _SiteStatus:
 
 def get_status():
     """Get pokerstars status: players online, number of tables, etc."""
-
-    res = requests.get(STATUS_URL)
-    # breakpoint()
-    status = res.json()["tournaments"]["host"]
-    sites = status.pop("site")
-    sites = tuple(_SiteStatus(**site) for site in sites)
-
-    return _Status(
-        sites=sites, updated=status["updated"], next_update=status["next_update"]
-    )
+    pass

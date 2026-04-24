@@ -103,58 +103,38 @@ class _BaseStreet:
 
     @cached_property
     def is_rainbow(self):
-        return all(
-            first.suit != second.suit for first, second in self._all_combinations
-        )
+        pass
 
     @cached_property
     def is_monotone(self):
-        return all(
-            first.suit == second.suit for first, second in self._all_combinations
-        )
+        pass
 
     @cached_property
     def is_triplet(self):
-        return all(
-            first.rank == second.rank for first, second in self._all_combinations
-        )
+        pass
 
     @cached_property
     def has_pair(self):
-        return any(
-            first.rank == second.rank for first, second in self._all_combinations
-        )
+        pass
 
     @cached_property
     def has_straightdraw(self):
-        return any(1 <= diff <= 3 for diff in self._get_differences())
+        pass
 
     @cached_property
     def has_gutshot(self):
-        return any(1 <= diff <= 4 for diff in self._get_differences())
+        pass
 
     @cached_property
     def has_flushdraw(self):
-        return any(
-            first.suit == second.suit for first, second in self._all_combinations
-        )
+        pass
 
     @cached_property
     def players(self):
-        if not self.actions:
-            return None
-        player_names = []
-        for action in self.actions:
-            player_name = action.name
-            if player_name not in player_names:
-                player_names.append(player_name)
-        return tuple(player_names)
+        pass
 
     def _get_differences(self):
-        return (
-            Rank.difference(first.rank, second.rank)
-            for first, second in self._all_combinations
-        )
+        pass
 
 
 class _BaseHandHistory:
@@ -177,33 +157,17 @@ class _BaseHandHistory:
     @property
     def board(self):
         """Calculates board from flop, turn and river."""
-        board = []
-        if self.flop:
-            board.extend(self.flop.cards)
-            if self.turn:
-                board.append(self.turn)
-                if self.river:
-                    board.append(self.river)
-        return tuple(board) if board else None
+        pass
 
     def _parse_date(self, date_string):
         """Parse the date_string and return a datetime object as UTC."""
-        date = datetime.strptime(date_string, self._DATE_FORMAT)
-        self.date = self._TZ.localize(date).astimezone(pytz.UTC)
+        pass
 
     def _init_seats(self, player_num):
-        players = []
-        for seat in range(1, player_num + 1):
-            players.append(
-                _Player(name="Empty Seat %s" % seat, stack=0, seat=seat, combo=None)
-            )
-
-        return players
+        pass
 
     def _get_hero_from_players(self, hero_name):
-        player_names = [p.name for p in self.players]
-        hero_index = player_names.index(hero_name)
-        return self.players[hero_index], hero_index
+        pass
 
 
 class _SplittableHandHistoryMixin:
@@ -213,10 +177,7 @@ class _SplittableHandHistoryMixin:
 
     def _split_raw(self):
         """Split hand history by sections."""
-
-        self._splitted = self._split_re.split(self.raw)
-        # search split locations (basically empty strings)
-        self._sections = [ind for ind, elem in enumerate(self._splitted) if not elem]
+        pass
 
     def _del_split_vars(self):
-        del self._splitted, self._sections
+        pass

@@ -71,13 +71,13 @@ class Strategy(Mapping):
         return iter(self._situations)
 
     def items(self):
-        return self._situations.items()
+        pass
 
     def keys(self):
-        return self._situations.keys()
+        pass
 
     def get(self, key, default=None):
-        return self._situations.get(key, default)
+        pass
 
     def __getitem__(self, key):
         if isinstance(key, str):
@@ -87,7 +87,7 @@ class Strategy(Mapping):
         raise TypeError("You can lookup by int or str")
 
     def values(self):
-        return self._situations.values()
+        pass
 
     def __contains__(self, key):
         return self._situations.__contains__(key)
@@ -96,8 +96,4 @@ class Strategy(Mapping):
         return len(self._situations)
 
     def get_first_spot(self, situation=0):
-        situation = self[situation]
-        for posindex, position in enumerate(Position):
-            range = getattr(situation, position.name.lower())
-            if range:
-                return _Spot(position, range, posindex)
+        pass
